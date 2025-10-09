@@ -63,7 +63,11 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 export async function apiLogin(identifier: string, password: string) {
   return apiFetch<{ success: boolean; data: { user: any; tokens: { accessToken: string; refreshToken: string; expiresIn: string } } }>(
     '/auth/login',
-    { method: 'POST', auth: false, body: { identifier, password } }
+    { 
+      method: 'POST', 
+      auth: false, 
+      body: { identifier, password } 
+    }
   );
 }
 
