@@ -19,3 +19,17 @@
 {"level":"info","message":"Environment: development","timestamp":"2025-10-09T07:26:56.074Z"}
 {"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T07:26:56.075Z"}
 {"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-10-09T07:31:23.919Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-02.dpor9.mongodb.net","timestamp":"2025-10-09T09:29:41.941Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T09:29:41.956Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T09:29:41.958Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T09:29:41.960Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-10-09T09:33:41.438Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-02.dpor9.mongodb.net","timestamp":"2025-10-09T09:41:22.206Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T09:41:22.222Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T09:41:22.224Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T09:41:22.226Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-10-09T09:46:00.851Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-00.dpor9.mongodb.net","timestamp":"2025-10-09T09:55:33.515Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T09:55:33.525Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T09:55:33.526Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T09:55:33.528Z"}

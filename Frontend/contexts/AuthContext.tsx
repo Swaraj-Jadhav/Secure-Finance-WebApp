@@ -11,7 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (username: string) => void;
+  login: (username: string, tokens?: { accessToken: string; refreshToken?: string; expiresIn?: string }) => void;
   logout: () => void;
   checkSession: () => boolean;
 }
@@ -72,13 +72,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Login function
-  const login = (username: string) => {
+  const login = (username: string, tokens?: { accessToken: string; refreshToken?: string; expiresIn?: string }) => {
     const loginTime = new Date().toISOString();
-    const sessionEndTime = Math.floor(Date.now() / 1000) + 30 * 60; // 30 minutes
+    const defaultExpiry = 30 * 60; // 30 minutes
+    const sessionEndTime = Math.floor(Date.now() / 1000) + defaultExpiry;
     
     localStorage.setItem('secureBank_user', username);
     localStorage.setItem('secureBank_lastLogin', loginTime);
     localStorage.setItem('secureBank_sessionTime', sessionEndTime.toString());
+    if (tokens?.accessToken) localStorage.setItem('secureBank_accessToken', tokens.accessToken);
+    if (tokens?.refreshToken) localStorage.setItem('secureBank_refreshToken', tokens.refreshToken);
     
     setUser({
       username,
@@ -92,6 +95,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('secureBank_user');
     localStorage.removeItem('secureBank_sessionTime');
     localStorage.removeItem('secureBank_lastLogin');
+    localStorage.removeItem('secureBank_accessToken');
+    localStorage.removeItem('secureBank_refreshToken');
     setUser(null);
     router.push('/login');
   };

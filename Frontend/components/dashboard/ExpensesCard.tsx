@@ -1,10 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Receipt, FileText } from 'lucide-react';
+import { apiGetExpenses } from '@/lib/api';
 
-export default function ExpensesCard({ expenses }) {
+type Expense = {
+  category: string;
+  amount: number;
+  percent: number;
+};
+
+interface ExpensesCardProps {
+  expenses?: Expense[];
+}
+
+export default function ExpensesCard({ expenses: initialExpenses = [] }: ExpensesCardProps) {
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await apiGetExpenses({ page: 1, limit: 6 });
+        // Map backend expenses to UI with percent approximation by share
+        const list = res.data.expenses || [];
+        const total = list.reduce((s: number, e: any) => s + (e.amount || 0), 0) || 1;
+        const mapped = list.map((e: any) => ({
+          category: e.category,
+          amount: e.amount,
+          percent: Math.round((e.amount / total) * 100),
+        }));
+        setExpenses(mapped);
+      } catch {
+        // keep initial mock if API fails
+      }
+    };
+    load();
+  }, []);
   return (
     <Card>
       <CardHeader>

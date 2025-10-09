@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Eye, EyeOff, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { apiLogin } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LoginFormData {
   username: string;
@@ -21,6 +23,7 @@ interface LoginPageProps {
 
 export default function LoginPage({ onLogin, sessionExpired = false }: LoginPageProps) {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     username: '',
     password: '',
@@ -54,14 +57,11 @@ export default function LoginPage({ onLogin, sessionExpired = false }: LoginPage
     if (error) setError('');
   };
 
-  // Simulate login process
+  // Login process via backend
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Basic validation
     if (!formData.username.trim()) {
@@ -76,18 +76,24 @@ export default function LoginPage({ onLogin, sessionExpired = false }: LoginPage
       return;
     }
 
-    // Simulate authentication
-    if (formData.username === 'admin' && formData.password === 'SecureBank2025!') {
-      // Simulate MFA step
-      setShowMFA(true);
-      setIsLoading(false);
-    } else {
-      setError('Invalid username or password');
+    try {
+      const res = await apiLogin(formData.username, formData.password);
+      const { user, tokens } = res.data;
+      // If MFA were required, we'd branch here; for now proceed to set tokens
+      login(user.username, tokens);
+      const loginTime = new Date();
+      localStorage.setItem('secureBank_lastLogin', loginTime.toISOString());
+      localStorage.setItem('secureBank_sessionTime', (Math.floor(Date.now() / 1000) + 30 * 60).toString());
+      onLogin(user.username);
+      router.push('/');
+    } catch (err: any) {
+      setError(err?.message || 'Login failed');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle MFA verification
+  // Handle MFA verification (demo only)
   const handleMFAVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);

@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileDown, Filter, Calendar, Search } from 'lucide-react';
+import { apiGetTransactions } from '@/lib/api';
 
-interface Transaction {
-  id: number;
+interface UiTransaction {
+  id: string;
   name: string;
   date: string;
   time: string;
@@ -16,11 +17,37 @@ interface Transaction {
   color: string;
 }
 
-interface TransactionsSectionProps {
-  transactions: Transaction[];
-}
+export default function TransactionsSection() {
+  const [transactions, setTransactions] = useState<UiTransaction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-export default function TransactionsSection({ transactions }: TransactionsSectionProps) {
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await apiGetTransactions({ page: 1, limit: 20 });
+        const ui = (res.data.transactions || []).map((t: any) => ({
+          id: t._id,
+          name: t.description,
+          date: new Date(t.createdAt).toLocaleDateString(),
+          time: new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          category: t.category,
+          amount: t.type === 'income' || t.type === 'deposit' ? t.amount : -Math.abs(t.amount),
+          status: t.status,
+          icon: (() => () => null)(),
+          color: t.amount > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600',
+        })) as UiTransaction[];
+        setTransactions(ui);
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load transactions');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
   return (
     <div className="lg:col-span-4"> {/* Changed from lg:col-span-2 to lg:col-span-3 */}
       <div className="flex items-center justify-between mb-4">

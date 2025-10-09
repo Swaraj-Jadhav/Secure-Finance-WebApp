@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, FileText, MoreHorizontal, Plus, Trash2, CreditCard, AlertCircle } from 'lucide-react';
@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { apiCreateAccount, apiDeleteAccount, apiGetAccounts, apiTransfer } from '@/lib/api';
 
-interface Account {
-  id: number;
+interface UiAccount {
+  id: string;
   name: string;
   number: string;
   balance: number;
@@ -23,29 +24,9 @@ interface Account {
 }
 
 export default function AccountsSection() {
-  const [accounts, setAccounts] = useState<Account[]>([
-    {
-      id: 1,
-      name: 'Primary Checking',
-      number: '****1234',
-      balance: 15420.50,
-      icon: '💳',
-      color: 'bg-blue-500',
-      type: 'primary',
-      category: 'Checking'
-    },
-    {
-      id: 2,
-      name: 'High Yield Savings',
-      number: '****5678',
-      balance: 45780.25,
-      icon: '💰',
-      color: 'bg-green-600',
-      type: 'virtual',
-      category: 'Savings',
-      createdAt: '2024-01-15'
-    }
-  ]);
+  const [accounts, setAccounts] = useState<UiAccount[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newAccount, setNewAccount] = useState({
@@ -66,19 +47,41 @@ export default function AccountsSection() {
     { value: 'personal', label: 'Personal Account', icon: '👤', color: 'bg-pink-500' }
   ];
 
-  // Get primary account
-  const primaryAccount = accounts.find(account => account.type === 'primary');
-  const virtualAccounts = accounts.filter(account => account.type === 'virtual');
+  // Initial load
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setActionError('');
+      try {
+        const res = await apiGetAccounts();
+        const ui = (res.data.accounts || []).map((a: any) => ({
+          id: a._id,
+          name: a.accountName,
+          number: `****${String(a.accountNumber || '').slice(-4)}`,
+          balance: a.balance,
+          icon: a.metadata?.icon || (a.accountType === 'primary' ? '💳' : '💰'),
+          color: a.metadata?.color || (a.accountType === 'primary' ? 'bg-blue-500' : 'bg-green-600'),
+          type: (a.accountType === 'primary' ? 'primary' : 'virtual') as UiAccount['type'],
+          category: a.category,
+          createdAt: a.createdAt,
+        })) as UiAccount[];
+        setAccounts(ui);
+      } catch (e: any) {
+        setActionError(e?.message || 'Failed to load accounts');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Get primary and virtual accounts
+  const primaryAccount = useMemo(() => accounts.find(account => account.type === 'primary'), [accounts]);
+  const virtualAccounts = useMemo(() => accounts.filter(account => account.type === 'virtual'), [accounts]);
 
   // Get available balance in primary account
   const getAvailableBalance = (): number => {
     return primaryAccount?.balance || 0;
-  };
-
-  // Generate a random account number
-  const generateAccountNumber = (): string => {
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `****${randomNum}`;
   };
 
   // Validate initial balance
@@ -97,8 +100,8 @@ export default function AccountsSection() {
     return true;
   };
 
-  // Create new virtual account
-  const createVirtualAccount = () => {
+  // Create new virtual account (backend)
+  const createVirtualAccount = async () => {
     if (!newAccount.name.trim()) return;
 
     const initialBalance = newAccount.initialBalance || 0;
@@ -107,66 +110,90 @@ export default function AccountsSection() {
       return;
     }
 
-    const category = accountCategories.find(cat => cat.value === newAccount.category);
-    
-    const newVirtualAccount: Account = {
-      id: Date.now(),
-      name: newAccount.name,
-      number: generateAccountNumber(),
-      balance: initialBalance,
-      icon: category?.icon || '💳',
-      color: category?.color || 'bg-blue-500',
-      type: 'virtual',
-      category: category?.label,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    // Update accounts: subtract from primary and add virtual account
-    setAccounts(prev => 
-      prev.map(account => 
-        account.type === 'primary' 
-          ? { ...account, balance: account.balance - initialBalance }
-          : account
-      ).concat(newVirtualAccount)
-    );
-
-    setNewAccount({ name: '', category: 'savings', initialBalance: 0 });
-    setIsCreateDialogOpen(false);
-    setBalanceError('');
-  };
-
-  // Delete virtual account and return money to primary
-  const deleteVirtualAccount = (accountId: number) => {
-    const virtualAccount = accounts.find(acc => acc.id === accountId && acc.type === 'virtual');
-    
-    if (!virtualAccount) return;
-
-    if (window.confirm(`Are you sure you want to delete "${virtualAccount.name}"? The balance of $${virtualAccount.balance.toLocaleString()} will be returned to your primary account.`)) {
-      setAccounts(prev => 
-        prev
-          .filter(account => account.id !== accountId)
-          .map(account => 
-            account.type === 'primary' 
-              ? { ...account, balance: account.balance + virtualAccount.balance }
-              : account
-          )
-      );
+    try {
+      setLoading(true);
+      const payload = {
+        accountName: newAccount.name,
+        accountType: 'virtual',
+        category: newAccount.category,
+        initialBalance,
+        currency: 'USD',
+      };
+      await apiCreateAccount(payload);
+      const res = await apiGetAccounts();
+      const ui = (res.data.accounts || []).map((a: any) => ({
+        id: a._id,
+        name: a.accountName,
+        number: `****${String(a.accountNumber || '').slice(-4)}`,
+        balance: a.balance,
+        icon: a.metadata?.icon || (a.accountType === 'primary' ? '💳' : '💰'),
+        color: a.metadata?.color || (a.accountType === 'primary' ? 'bg-blue-500' : 'bg-green-600'),
+        type: (a.accountType === 'primary' ? 'primary' : 'virtual') as UiAccount['type'],
+        category: a.category,
+        createdAt: a.createdAt,
+      })) as UiAccount[];
+      setAccounts(ui);
+      setNewAccount({ name: '', category: 'savings', initialBalance: 0 });
+      setIsCreateDialogOpen(false);
+      setBalanceError('');
+    } catch (e: any) {
+      setActionError(e?.message || 'Failed to create account');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Transfer money between accounts
-  const transferMoney = (fromAccountId: number, toAccountId: number, amount: number) => {
-    setAccounts(prev => 
-      prev.map(account => {
-        if (account.id === fromAccountId) {
-          return { ...account, balance: account.balance - amount };
-        }
-        if (account.id === toAccountId) {
-          return { ...account, balance: account.balance + amount };
-        }
-        return account;
-      })
-    );
+  // Delete virtual account (backend) and return money to primary
+  const deleteVirtualAccount = async (accountId: string) => {
+    const virtualAccount = accounts.find(acc => acc.id === accountId && acc.type === 'virtual');
+    if (!virtualAccount) return;
+    if (!window.confirm(`Are you sure you want to delete "${virtualAccount.name}"? The remaining balance will be returned to your primary account.`)) return;
+    try {
+      setLoading(true);
+      await apiDeleteAccount(accountId);
+      const res = await apiGetAccounts();
+      const ui = (res.data.accounts || []).map((a: any) => ({
+        id: a._id,
+        name: a.accountName,
+        number: `****${String(a.accountNumber || '').slice(-4)}`,
+        balance: a.balance,
+        icon: a.metadata?.icon || (a.accountType === 'primary' ? '💳' : '💰'),
+        color: a.metadata?.color || (a.accountType === 'primary' ? 'bg-blue-500' : 'bg-green-600'),
+        type: (a.accountType === 'primary' ? 'primary' : 'virtual') as UiAccount['type'],
+        category: a.category,
+        createdAt: a.createdAt,
+      })) as UiAccount[];
+      setAccounts(ui);
+    } catch (e: any) {
+      setActionError(e?.message || 'Failed to delete account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transfer money between accounts (backend)
+  const transferMoney = async (fromAccountId: string, toAccountId: string, amount: number) => {
+    try {
+      setLoading(true);
+      await apiTransfer({ fromAccountId, toAccountId, amount });
+      const res = await apiGetAccounts();
+      const ui = (res.data.accounts || []).map((a: any) => ({
+        id: a._id,
+        name: a.accountName,
+        number: `****${String(a.accountNumber || '').slice(-4)}`,
+        balance: a.balance,
+        icon: a.metadata?.icon || (a.accountType === 'primary' ? '💳' : '💰'),
+        color: a.metadata?.color || (a.accountType === 'primary' ? 'bg-blue-500' : 'bg-green-600'),
+        type: (a.accountType === 'primary' ? 'primary' : 'virtual') as UiAccount['type'],
+        category: a.category,
+        createdAt: a.createdAt,
+      })) as UiAccount[];
+      setAccounts(ui);
+    } catch (e: any) {
+      setActionError(e?.message || 'Transfer failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle balance input change with validation
@@ -180,6 +207,9 @@ export default function AccountsSection() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-slate-900">Your Accounts</h2>
+        {actionError && (
+          <span className="text-sm text-red-600">{actionError}</span>
+        )}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
@@ -309,7 +339,12 @@ export default function AccountsSection() {
                 Available for virtual accounts: ${getAvailableBalance().toLocaleString()}
               </div>
               <div className="mt-4 flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                  const to = virtualAccounts[0]?.id;
+                  const amtStr = prompt('Amount to transfer from Primary to first virtual account?','100');
+                  const amt = amtStr ? parseFloat(amtStr) : 0;
+                  if (to && amt > 0) transferMoney(primaryAccount.id, to, amt);
+                }} disabled={loading || virtualAccounts.length === 0}>
                   <ArrowUpDown className="w-4 h-4 mr-1" />
                   Transfer
                 </Button>
