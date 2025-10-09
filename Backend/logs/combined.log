@@ -1,0 +1,21 @@
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-02.dpor9.mongodb.net","timestamp":"2025-10-09T07:25:13.241Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T07:25:13.257Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T07:25:13.258Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T07:25:13.260Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-01.dpor9.mongodb.net","timestamp":"2025-10-09T07:25:37.810Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T07:25:37.818Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T07:25:37.819Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T07:25:37.820Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-00.dpor9.mongodb.net","timestamp":"2025-10-09T07:25:49.881Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T07:25:49.886Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T07:25:49.887Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T07:25:49.888Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-02.dpor9.mongodb.net","timestamp":"2025-10-09T07:26:06.446Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T07:26:06.454Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T07:26:06.455Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T07:26:06.456Z"}
+{"level":"info","message":"MongoDB connected successfully to firstcluster-shard-00-02.dpor9.mongodb.net","timestamp":"2025-10-09T07:26:56.057Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2025-10-09T07:26:56.072Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-10-09T07:26:56.074Z"}
+{"level":"info","message":"Health check: http://localhost:5000/health","timestamp":"2025-10-09T07:26:56.075Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-10-09T07:31:23.919Z"}
