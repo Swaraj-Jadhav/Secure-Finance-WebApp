@@ -4,9 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileDown, Filter, Calendar, Search } from 'lucide-react';
 
-export default function TransactionsSection({ transactions }) {
+interface Transaction {
+  id: number;
+  name: string;
+  date: string;
+  time: string;
+  category: string;
+  amount: number;
+  status: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+interface TransactionsSectionProps {
+  transactions: Transaction[];
+}
+
+export default function TransactionsSection({ transactions }: TransactionsSectionProps) {
   return (
-    <div>
+    <div className="lg:col-span-4"> {/* Changed from lg:col-span-2 to lg:col-span-3 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-slate-900">Recent Transactions</h2>
         <Button variant="outline" size="sm">

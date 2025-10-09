@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Shield, Clock, Monitor, RefreshCw, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SecurityBar() {
+  const { user, logout } = useAuth();
   const [timeLeft, setTimeLeft] = useState<number>(30 * 60); // 30 minutes in seconds
   const [lastLogin, setLastLogin] = useState<string>('');
   const [isSessionExtended, setIsSessionExtended] = useState<boolean>(false);
@@ -130,9 +132,9 @@ export default function SecurityBar() {
     // Clear session data
     localStorage.removeItem('secureBank_sessionTime');
     
-    // Show expiration message (in real app, redirect to login)
+    // Logout user and redirect to login
     console.log('Session expired - redirecting to login...');
-    // window.location.href = '/login';
+    logout();
   };
 
   // Extend session function
@@ -197,7 +199,7 @@ export default function SecurityBar() {
             
             <div className="flex items-center gap-2 text-blue-700">
               <Monitor className="w-4 h-4" />
-              <span>{getLastLoginInfo()}</span>
+              <span>{user ? `Logged in as: ${user.username}` : getLastLoginInfo()}</span>
             </div>
           </div>
           
@@ -208,7 +210,7 @@ export default function SecurityBar() {
             <Button 
               variant="link" 
               className="text-red-600 h-auto p-0 text-sm flex items-center gap-1"
-              onClick={handleSessionExpired}
+              onClick={logout}
             >
               <LogOut className="w-3 h-3" />
               Logout
