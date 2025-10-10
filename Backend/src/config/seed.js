@@ -40,6 +40,7 @@ const seedData = async () => {
     // Create primary account
     const primaryAccount = new Account({
       userId: demoUser._id,
+      accountNumber: '1000123456', // Generate a unique account number
       accountName: 'Primary Checking',
       accountType: 'primary',
       category: 'checking',
@@ -77,9 +78,11 @@ const seedData = async () => {
       }
     ];
 
-    for (const accountData of virtualAccounts) {
+    for (let i = 0; i < virtualAccounts.length; i++) {
+      const accountData = virtualAccounts[i];
       const account = new Account({
         userId: demoUser._id,
+        accountNumber: `2000${100000 + i}`, // Generate unique account numbers
         accountType: 'virtual',
         ...accountData,
         availableBalance: accountData.balance
@@ -92,19 +95,21 @@ const seedData = async () => {
     // Create sample transactions
     const transactions = [
       {
+        transactionId: 'TXN001',
         userId: demoUser._id,
         fromAccount: primaryAccount._id,
-        amount: -500.00,
+        amount: 500.00,
         type: 'withdrawal',
-        category: 'transfer',
+        category: 'other',
         description: 'Internal Transfer',
         status: 'completed',
         processedAt: new Date()
       },
       {
+        transactionId: 'TXN002',
         userId: demoUser._id,
         fromAccount: primaryAccount._id,
-        amount: -89.99,
+        amount: 89.99,
         type: 'expense',
         category: 'shopping',
         description: 'Amazon Marketplace',
@@ -112,6 +117,7 @@ const seedData = async () => {
         processedAt: new Date()
       },
       {
+        transactionId: 'TXN003',
         userId: demoUser._id,
         toAccount: primaryAccount._id,
         amount: 3500.00,
@@ -122,9 +128,10 @@ const seedData = async () => {
         processedAt: new Date()
       },
       {
+        transactionId: 'TXN004',
         userId: demoUser._id,
         fromAccount: primaryAccount._id,
-        amount: -125.50,
+        amount: 125.50,
         type: 'expense',
         category: 'utilities',
         description: 'Electric Company',
@@ -132,9 +139,10 @@ const seedData = async () => {
         processedAt: new Date()
       },
       {
+        transactionId: 'TXN005',
         userId: demoUser._id,
         fromAccount: primaryAccount._id,
-        amount: -1200.00,
+        amount: 1200.00,
         type: 'expense',
         category: 'investment',
         description: 'Stock Purchase - AAPL',
